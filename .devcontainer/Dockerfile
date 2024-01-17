@@ -22,3 +22,11 @@ RUN mkdir --parents ${WASMTIME_HOME} && \
     xz --decompress | \
     tar --strip-components 1 --directory ${WASMTIME_HOME} -x && \
     ln -s ${WASMTIME_HOME}/wasmtime /usr/local/bin
+
+ARG USERNAME=python
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid $USER_GID $USERNAME
+
+USER $USERNAME
