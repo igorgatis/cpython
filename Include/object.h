@@ -801,15 +801,24 @@ static inline Py_ALWAYS_INLINE void Py_INCREF(PyObject *op)
         _Py_atomic_add_ssize(&op->ob_ref_shared, (1 << _Py_REF_SHARED_SHIFT));
     }
 #elif SIZEOF_VOID_P > 4
-    // Portable saturated add, branching on the carry flag and set low bits
     PY_UINT32_T cur_refcnt = op->ob_refcnt_split[PY_BIG_ENDIAN];
     PY_UINT32_T new_refcnt = cur_refcnt + 1;
+    // Portable saturated add, branching on the carry flag and set low bits
+    #ifdef BRANCHELESS
+    op->ob_refcnt_split[PY_BIG_ENDIAN] += (new_refcnt != 0);
+    if (new_refcnt == 0) {
+        // cur_refcnt is equal to _Py_IMMORTAL_REFCNT: the object is immortal,
+        // do nothing
+        return;
+    }
+    #else
     if (new_refcnt == 0) {
         // cur_refcnt is equal to _Py_IMMORTAL_REFCNT: the object is immortal,
         // do nothing
         return;
     }
     op->ob_refcnt_split[PY_BIG_ENDIAN] = new_refcnt;
+    #endif
 #else
     // Explicitly check immortality against the immortal value
     if (_Py_IsImmortal(op)) {
