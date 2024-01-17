@@ -806,11 +806,13 @@ static inline Py_ALWAYS_INLINE void Py_INCREF(PyObject *op)
     PY_UINT32_T new_refcnt = cur_refcnt + 1;
     #ifdef BRANCHELESS
     op->ob_refcnt_split[PY_BIG_ENDIAN] += (new_refcnt != 0);
-    if (new_refcnt == 0) {
-        // cur_refcnt is equal to _Py_IMMORTAL_REFCNT: the object is immortal,
-        // do nothing
-        return;
-    }
+    // Not needed for this test because Py_REF_DEBUG is undefined and
+    // _Py_INCREF_STAT_INC is ((void)0).
+    // if (new_refcnt == 0) {
+    //     // cur_refcnt is equal to _Py_IMMORTAL_REFCNT: the object is immortal,
+    //     // do nothing
+    //     return;
+    // }
     #else
     if (new_refcnt == 0) {
         // cur_refcnt is equal to _Py_IMMORTAL_REFCNT: the object is immortal,
