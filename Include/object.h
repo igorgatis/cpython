@@ -802,10 +802,8 @@ static inline Py_ALWAYS_INLINE void Py_INCREF(PyObject *op)
     }
 #elif SIZEOF_VOID_P > 4
     // Portable saturated add, branching on the carry flag and set low bits
-    PY_UINT32_T cur_refcnt = op->ob_refcnt_split[PY_BIG_ENDIAN];
-    PY_UINT32_T new_refcnt = cur_refcnt + 1;
     #ifdef BRANCHELESS
-    op->ob_refcnt_split[PY_BIG_ENDIAN] += (new_refcnt != 0);
+    op->ob_refcnt += ((op->ob_refcnt_split[PY_BIG_ENDIAN] + 1) != 0);
     // Not needed for this test because Py_REF_DEBUG is undefined and
     // _Py_INCREF_STAT_INC is ((void)0).
     // if (new_refcnt == 0) {
@@ -814,6 +812,8 @@ static inline Py_ALWAYS_INLINE void Py_INCREF(PyObject *op)
     //     return;
     // }
     #else
+    PY_UINT32_T cur_refcnt = op->ob_refcnt_split[PY_BIG_ENDIAN];
+    PY_UINT32_T new_refcnt = cur_refcnt + 1;
     if (new_refcnt == 0) {
         // cur_refcnt is equal to _Py_IMMORTAL_REFCNT: the object is immortal,
         // do nothing

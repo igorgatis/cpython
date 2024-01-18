@@ -1,19 +1,27 @@
 #include <Python.h>
 
-PyObject obj;
-PyObject *pobj = NULL;
+PyObject obj1;
+PyObject obj2;
+
+Py_NO_INLINE static void
+work(PyObject *pobj)
+{
+    Py_INCREF(pobj);
+}
 
 int main(int argc, char *argv[])
 {
-    if (argc)
+    PyObject* objects[2];
+    objects[0] = &obj1;
+    objects[1] = &obj2;
+
+    int n = 1000 * 1000 * 1000;
+    while (n--)
     {
-        pobj = &obj; // To prevent compiler optimization over obj fields.
+        work(objects[n%2]);
     }
 
-    for (int i = 0; i < 1000 * 1000 * 1000; i++)
-    {
-        Py_INCREF(pobj);
-    }
-    printf("ob_refcnt=%lu\n", pobj->ob_refcnt);
+    printf("obj1.ob_refcnt=%lu\n", obj1.ob_refcnt);
+    printf("obj2.ob_refcnt=%lu\n", obj2.ob_refcnt);
     return 0;
 }
